@@ -1,7 +1,9 @@
 package com.punitive.tools.restcomparator.pojo;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -17,14 +19,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.punitive.tools.restcomparator.dao.JobResultDao;
 
 public class Job implements Runnable{
 	private JobSetting jobSetting;
 	private JobRunSetting jobRunSetting;
+	private JobResultDao jobResultDao;
 	
-	private Date runDate;
-	private Status status;
-	private String reason;
 	private Date modifiedDate;
 	
 	public JobSetting getJobSetting() {
@@ -33,29 +34,11 @@ public class Job implements Runnable{
 	public void setJobSetting(JobSetting jobSetting) {
 		this.jobSetting = jobSetting;
 	}
-	public Date getRunDate() {
-		return runDate;
-	}
-	public void setRunDate(Date runDate) {
-		this.runDate = runDate;
-	}
-	public Status getStatus() {
-		return status;
-	}
-	public void setStatus(Status status) {
-		this.status = status;
-	}
 	public Date getModifiedDate() {
 		return modifiedDate;
 	}
 	public void setModifiedDate(Date modifiedDate) {
 		this.modifiedDate = modifiedDate;
-	}
-	public String getReason() {
-		return reason;
-	}
-	public void setReason(String reason) {
-		this.reason = reason;
 	}
 	public JobRunSetting getJobRunSetting() {
 		return jobRunSetting;
@@ -63,18 +46,39 @@ public class Job implements Runnable{
 	public void setJobRunSetting(JobRunSetting jobRunSetting) {
 		this.jobRunSetting = jobRunSetting;
 	}
+	
+	public JobResultDao getJobResultDao() {
+		return jobResultDao;
+	}
+	public void setJobResultDao(JobResultDao jobResultDao) {
+		this.jobResultDao = jobResultDao;
+	}
 	@Override
 	public String toString() {
-		return "JobResult [jobSetting=" + jobSetting + ", runDate=" + runDate + ", status=" + status + ", modifiedDate="
-				+ modifiedDate + ", reason=" + reason + ", jobRunSetting=" + jobRunSetting + "]";
+		return "Job [jobSetting=" + jobSetting + ", jobRunSetting=" + jobRunSetting + ", modifiedDate=" + modifiedDate
+				+ "]";
 	}
-	
 	public String toJson() throws JsonProcessingException{
 		return new ObjectMapper().writeValueAsString(this);
 	}
 	
 	@Override
 	public void run() {
+		try {
+			callEndpoint(jobSetting.getUrl1());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		try {
+			callEndpoint(jobSetting.getUrl2());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		/*
 		new Thread(new Runnable(){
 			@Override
 			public void run() {
@@ -95,6 +99,7 @@ public class Job implements Runnable{
 				}			
 			}
 		}).start();
+	*/
 	}
 	private HttpEntity<String> callEndpoint(String url) throws JsonParseException, JsonMappingException, IOException {
 		RestTemplate restTemplate = new RestTemplate();
@@ -118,9 +123,15 @@ public class Job implements Runnable{
 		return response;
 	}
 	private MultiValueMap<String, String> extractParams() throws JsonParseException, JsonMappingException, IOException {
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
+		Map<String,String> intermediateMap = null;
 		ObjectMapper mapper = new ObjectMapper();
-		params = mapper.readValue(jobRunSetting.getParamsJson(), new TypeReference<MultiValueMap<String, String>>(){});
+		intermediateMap = mapper.readValue(jobRunSetting.getParamsJson(), new TypeReference<Map<String, String>>(){});
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
+		for(String key:intermediateMap.keySet()){
+			if(!params.containsKey(key))
+				params.put(key, new ArrayList<>());
+			params.get(key).add(intermediateMap.get(key));
+		}
 		return params;
 	}
 	

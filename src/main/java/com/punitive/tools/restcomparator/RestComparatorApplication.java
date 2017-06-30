@@ -30,6 +30,11 @@ class RestComparatorController{
         return "invoke success";
     }
 	
+	@RequestMapping("/testp")
+    public String testp(@RequestParam(value = "p1", required = false) String param1,
+    		@RequestParam( value = "p2", required = false) String param2) {
+        return param1+param2;
+	}
 	
 	@RequestMapping("/test")
     public String test() {

@@ -12,7 +12,7 @@ public class JobManager {
 	private JobFactory jobFactory;
 
 	public void createAndRun(JobSetting jobSetting) {
-		// TODO Auto-generated method stub
+		jobFactory.build(jobSetting).parallelStream().forEach(x->x.run());
 		
 	}
 	

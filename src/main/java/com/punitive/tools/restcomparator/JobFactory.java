@@ -1,12 +1,12 @@
 package com.punitive.tools.restcomparator;
 
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.punitive.tools.restcomparator.dao.JobResultDao;
 import com.punitive.tools.restcomparator.dao.JobRunSettingDao;
 import com.punitive.tools.restcomparator.pojo.Job;
 import com.punitive.tools.restcomparator.pojo.JobRunSetting;
@@ -17,6 +17,8 @@ public class JobFactory {
 	
 	@Autowired
 	private JobRunSettingDao jobRunSettingDao;
+	@Autowired
+	private JobResultDao jobResultDao;
 	
 	public List<Job> build(JobSetting jobSetting){
 		List<JobRunSetting> jobRunSettingList = jobRunSettingDao.getJobRunSetting(jobSetting.getJobName());
@@ -30,7 +32,7 @@ public class JobFactory {
 		Job job = new Job();
 		job.setJobRunSetting(x);
 		job.setJobSetting(jobSetting);
-		job.setRunDate(new Date());
+		job.setJobResultDao(jobResultDao);
 		return job;
 	}
 }
