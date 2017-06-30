@@ -1,0 +1,1 @@
+CREATE TABLE job_run_setting (job_name VARCHAR(20), params_json VARCHAR(2000), modified_dt DATETIME default current_timestamp);
